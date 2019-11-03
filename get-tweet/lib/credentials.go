@@ -32,8 +32,6 @@ func (c *Credentials) GetClient() (*twitter.Client, error) {
 		IncludeEmail: twitter.Bool(true),
 	}
 
-	// we can retrieve the user and verify if the credentials
-	// we have used successfully allow us to log in!
 	user, _, err := client.Accounts.VerifyCredentials(verifyParams)
 	if err != nil {
 		return nil, err

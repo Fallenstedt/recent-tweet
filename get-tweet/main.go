@@ -35,7 +35,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return events.APIGatewayProxyResponse{}, err
 	}
 
-	tweetsJSON, err := getTweetJSON(tweets)
+	tweetsJSON, err := getTweetJSON(&tweets)
 
 	if err != nil {
 		log.Print(err)
@@ -48,11 +48,11 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	}, nil
 }
 
-func getTweetJSON(tweets []twitter.Tweet) ([]byte, error) {
+func getTweetJSON(tweets *[]twitter.Tweet) ([]byte, error) {
 	var t twitter.Tweet
 
-	if len(tweets) > 0 {
-		t = tweets[0]
+	if len(*tweets) > 0 {
+		t = (*tweets)[0]
 	}
 
 	tweetsJSON, err := json.Marshal(t)
