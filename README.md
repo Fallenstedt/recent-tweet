@@ -1,6 +1,6 @@
-# hello-sam
+# Recent Tweet
 
-A simple way to show your latest tweet. Every 24hrs it fetches your latest tweet and stores it in DynamoDB. Your tweet is stored in DynamoDB so twitter does not get angry at you.
+A simple way to show your latest tweet. Every 24hrs it fetches your latest tweet and stores it in DynamoDB. A simple GET endpoint fetches your tweet. Now you can display your latest tweet where you need it!
 
 ## Requirements
 
