@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -21,6 +22,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	client, err := twitterFactory.GetClient()
 
 	if err != nil {
+		log.Print(err)
 		return events.APIGatewayProxyResponse{}, err
 	}
 
@@ -28,9 +30,15 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		Count: 1,
 	})
 
-	tweetsJSON, err := json.Marshal(tweets)
+	if err != nil {
+		log.Print(err)
+		return events.APIGatewayProxyResponse{}, err
+	}
 
-	if err == nil {
+	tweetsJSON, err := getTweetJSON(tweets)
+
+	if err != nil {
+		log.Print(err)
 		return events.APIGatewayProxyResponse{}, err
 	}
 
@@ -38,6 +46,17 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		Body:       string(tweetsJSON),
 		StatusCode: 200,
 	}, nil
+}
+
+func getTweetJSON(tweets []twitter.Tweet) ([]byte, error) {
+	var t twitter.Tweet
+
+	if len(tweets) > 0 {
+		t = tweets[0]
+	}
+
+	tweetsJSON, err := json.Marshal(t)
+	return tweetsJSON, err
 }
 
 func main() {

@@ -7,9 +7,6 @@ import (
 	"github.com/dghubble/oauth1"
 )
 
-// other imports
-// "github.com/dghubble/oauth1"
-
 // Credentials stores all of our access/consumer tokens
 // and secret keys needed for authentication against
 // the twitter REST API.
