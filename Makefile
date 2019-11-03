@@ -4,10 +4,10 @@ deps:
 	go get -u ./...
 
 clean: 
-	rm -rf ./hello-world/hello-world
+	rm -rf ./get-tweet/get-tweet
 	
 build:
-	GOOS=linux GOARCH=amd64 go build -o hello-world/hello-world ./hello-world
+	GOOS=linux GOARCH=amd64 go build -o get-tweet/get-tweet ./get-tweet
 
 package:
 	sam package --s3-bucket sam-cli-bucket-fallenstedt --template-file template.yaml --output-template-file packaged-template.yaml
