@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"os"
 
@@ -27,7 +26,8 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	}
 
 	tweets, _, err := client.Timelines.UserTimeline(&twitter.UserTimelineParams{
-		Count: 1,
+		TweetMode: "extended",
+		Count:     1,
 	})
 
 	if err != nil {
@@ -35,7 +35,16 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return events.APIGatewayProxyResponse{}, err
 	}
 
-	tweetsJSON, err := getTweetJSON(&tweets)
+	simpleTweets, err := lib.CreateSimpleTweetDTO(&tweets)
+
+	if err != nil {
+		return events.APIGatewayProxyResponse{
+			StatusCode: 404,
+			Body:       string("User has no tweets"),
+		}, nil
+	}
+
+	tweetsJSON, err := simpleTweets[0].TweetToJSON()
 
 	if err != nil {
 		log.Print(err)
@@ -46,17 +55,6 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		Body:       string(tweetsJSON),
 		StatusCode: 200,
 	}, nil
-}
-
-func getTweetJSON(tweets *[]twitter.Tweet) ([]byte, error) {
-	var t twitter.Tweet
-
-	if len(*tweets) > 0 {
-		t = (*tweets)[0]
-	}
-
-	tweetsJSON, err := json.Marshal(t)
-	return tweetsJSON, err
 }
 
 func main() {
