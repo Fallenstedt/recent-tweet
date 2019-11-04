@@ -44,7 +44,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		}, nil
 	}
 
-	tweetsJSON, err := simpleTweets[0].TweetToJSON()
+	firstTweetJSON, err := simpleTweets[0].TweetToJSON()
 
 	if err != nil {
 		log.Print(err)
@@ -52,7 +52,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	}
 
 	return events.APIGatewayProxyResponse{
-		Body:       string(tweetsJSON),
+		Body:       string(firstTweetJSON),
 		StatusCode: 200,
 	}, nil
 }
