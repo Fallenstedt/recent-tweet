@@ -11,6 +11,9 @@ build:
 
 debug:
 	GOARCH=amd64 GOOS=linux go build -gcflags='-N -l' -o get-tweet/get-tweet ./get-tweet
+
+test:
+	go test -v ./...
 	
 package:
 	sam package --s3-bucket sam-cli-bucket-fallenstedt --template-file template.yaml --output-template-file packaged-template.yaml
