@@ -16,7 +16,7 @@ test:
 	go test -v ./...
 	
 package:
-	sam package --s3-bucket sam-cli-bucket-fallenstedt --template-file template.yaml --output-template-file packaged-template.yaml
+	sam package --s3-bucket latest-tweet-sam --template-file template.yaml --output-template-file packaged-template.yaml
 
 deploy:
 	sam deploy --template-file packaged-template.yaml --stack-name latest-tweet  --capabilities CAPABILITY_IAM
