@@ -16,6 +16,9 @@ Resources:
       Handler: get-tweet
       Runtime: go1.x
       Tracing: Active # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LatestTweetTable
       Events:
         CatchAll:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -28,17 +31,33 @@ Resources:
           CONSUMER_SECRET: VALUE
           ACCESS_KEY: VALUE
           ACCESS_SECRET: VALUE
+          TABLE_NAME: VALUE
+  LatestTweetTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: VALUE
+      PrimaryKey:
+        Name: ID
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      Tags:
+        Department: Engineering
+        AppType: Serverless
+      SSESpecification:
+        SSEEnabled: true
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  HelloWorldAPI:
+  GetTweetAPI:
     Description: "API Gateway endpoint URL for Prod environment for First Function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
-    Description: "First Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/get-tweet/"
+  GetTweetFunction:
+    Description: "ARN of GetTweet Function"
+    Value: !GetAtt GetTweetFunction.Arn
+  GetTweetFunctionIamRole:
+    Description: "Implicit IAM Role created for Get Tweet function"
+    Value: !GetAtt GetTweetFunctionRole.Arn

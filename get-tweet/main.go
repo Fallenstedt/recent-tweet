@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -18,13 +19,15 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		AccessTokenSecret: os.Getenv("ACCESS_SECRET"),
 	}
 
+	log.Print("Getting Client")
 	client, err := twitterFactory.GetClient()
-
 	if err != nil {
 		log.Print(err)
 		return events.APIGatewayProxyResponse{}, err
 	}
+	log.Print("Got Client")
 
+	log.Print("Getting Tweets")
 	tweets, _, err := client.Timelines.UserTimeline(&twitter.UserTimelineParams{
 		TweetMode: "extended",
 		Count:     1,
@@ -34,7 +37,8 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		log.Print(err)
 		return events.APIGatewayProxyResponse{}, err
 	}
-
+	log.Print("Got Tweets")
+	log.Print("Create Simple Tweet")
 	simpleTweets, err := lib.CreateSimpleTweetDTO(&tweets)
 
 	if err != nil {
@@ -43,17 +47,20 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 			Body:       string("User has no tweets"),
 		}, nil
 	}
+	log.Print("Got Simple Tweet")
+	log.Print("Create Session and Query")
+	session := lib.CreateSimpleTweetTableSession(os.Getenv("TABLE_NAME"))
+	queryResult, err := session.QueryTweetFromDynamo(&simpleTweets[0])
 
-	firstTweet := &simpleTweets[0]
-	session := lib.CreateSimpleTweetTableSession()
+	fmt.Printf("%+v\n", queryResult)
 
-	session.GetItem()
 	if err != nil {
 		return events.APIGatewayProxyResponse{}, err
 	}
+	log.Print("Got Session and Query")
 
 	return events.APIGatewayProxyResponse{
-		Body:       string("HI"),
+		Body:       string(queryResult.String()),
 		StatusCode: 200,
 	}, nil
 }
