@@ -60,6 +60,8 @@ func (s *SimpleTweetTable) QueryTweetFromDynamo(t *SimpleTweetDTO) *SimpleTweetD
 
 func (s *SimpleTweetTable) UpdateLatestTweetInDynamo(t *SimpleTweetDTO) {
 	av, err := dynamodbattribute.MarshalMap(t)
+
+	fmt.Printf("%+v\n", av)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to marshal Record, %v", err))
 	}
