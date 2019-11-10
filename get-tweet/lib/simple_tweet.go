@@ -3,6 +3,7 @@ package lib
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/dghubble/go-twitter/twitter"
 )
@@ -10,15 +11,18 @@ import (
 // SimpleTweetDTO creates a tweet with
 // only the message and its ID.
 type SimpleTweetDTO struct {
-	Message string `json:"message"`
-	ID      string `json:"id"`
+	Message string `json:"message" dynamodbav:"Message"`
+	ID      string `json:"id" dynamodbav:"ID"`
 }
 
 // TweetToJSON takes a simple tweet
 // and returns a JSON version of it
-func (t *SimpleTweetDTO) TweetToJSON() (string, error) {
+func (t *SimpleTweetDTO) TweetToJSON() string {
 	tweetsJSON, err := json.Marshal(t)
-	return string(tweetsJSON), err
+	if err != nil {
+		panic(fmt.Sprintf("Failed to Marshel Tweet, %v", err))
+	}
+	return string(tweetsJSON)
 }
 
 // CreateSimpleTweetDTO creates a SimpleTweetDTO struct
