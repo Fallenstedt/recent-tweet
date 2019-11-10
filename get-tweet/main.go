@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -43,22 +44,36 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		}, nil
 	}
 
-	firstTweet := &simpleTweets[0]
+	var returnedTweet *lib.SimpleTweetDTO
 	session := lib.CreateSimpleTweetTableSession(os.Getenv("TABLE_NAME"))
-	queryResult := session.QueryTweetFromDynamo(firstTweet)
-	//TODO Implement a strategy design here.
-	isTweetFromDynamoNotMyLatestTweet := queryResult.ID == "" || queryResult.ID != firstTweet.ID
-	if isTweetFromDynamoNotMyLatestTweet {
+	recentTweet := &simpleTweets[0]
+	queriedTweet := performOperationOnDynamo(session, recentTweet, lib.QueryTweet{})
+	isTweetFromDynamoNotMyLatestTweet := strings.Compare(queriedTweet.ID, recentTweet.ID)
+
+	if isTweetFromDynamoNotMyLatestTweet != 0 {
+		log.Printf("I have compred to the two tweets, %s, %s", queriedTweet.ID, recentTweet.ID)
 		log.Print("Updating latest tweet in Dynamo")
-		session.UpdateLatestTweetInDynamo(firstTweet)
+		updatedTweet := performOperationOnDynamo(session, recentTweet, lib.UpdateTweet{})
+		returnedTweet = updatedTweet
+	} else {
+		log.Print("Returning Tweet from DynamoDB")
+		returnedTweet = queriedTweet
 	}
 
-	resp := buildResponse(queryResult)
+	resp := buildResponse(returnedTweet)
 	return resp, nil
 }
 
-func buildResponse(t *lib.SimpleTweetDTO) events.APIGatewayProxyResponse {
+func performOperationOnDynamo(s *lib.DynamoDbInstance, t *lib.SimpleTweetDTO, o lib.DynamoOperator) *lib.SimpleTweetDTO {
 
+	operation := lib.DynamoOperation{
+		DynamoOperator: o,
+	}
+	operationResult := operation.ExecuteOperation(s, t)
+	return operationResult
+}
+
+func buildResponse(t *lib.SimpleTweetDTO) events.APIGatewayProxyResponse {
 	r := events.APIGatewayProxyResponse{
 		Body:       t.TweetToJSON(),
 		StatusCode: 200,
