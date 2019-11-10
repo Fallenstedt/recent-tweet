@@ -95,12 +95,9 @@ func (UpdateTweet) Execute(s *DynamoDbInstance, t *SimpleTweetDTO) *SimpleTweetD
 	}
 
 	_, err = s.Session.PutItem(input)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to Put Item, %v", err))
-	}
 
 	if err != nil {
-		panic(fmt.Sprintf("Failed to unmarshal Record, %v", err))
+		panic(fmt.Sprintf("Failed to Put Item, %v", err))
 	}
 
 	fmt.Println("Successfully added tweet " + t.ID)
