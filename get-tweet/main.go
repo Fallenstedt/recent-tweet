@@ -43,23 +43,27 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		}, nil
 	}
 
+	firstTweet := &simpleTweets[0]
 	session := lib.CreateSimpleTweetTableSession(os.Getenv("TABLE_NAME"))
-	queryResult := session.QueryTweetFromDynamo(&simpleTweets[0])
-	isTweetFromDynamoNotMyLatestTweet := queryResult.ID == "" || &queryResult.ID != &simpleTweets[0].ID
-
+	queryResult := session.QueryTweetFromDynamo(firstTweet)
+	//TODO Implement a strategy design here.
+	isTweetFromDynamoNotMyLatestTweet := queryResult.ID == "" || queryResult.ID != firstTweet.ID
 	if isTweetFromDynamoNotMyLatestTweet {
 		log.Print("Updating latest tweet in Dynamo")
-		session.UpdateLatestTweetInDynamo(&simpleTweets[0])
-		return events.APIGatewayProxyResponse{
-			Body:       string("bar"),
-			StatusCode: 200,
-		}, nil
+		session.UpdateLatestTweetInDynamo(firstTweet)
 	}
 
-	return events.APIGatewayProxyResponse{
-		Body:       string("foo"),
+	resp := buildResponse(queryResult)
+	return resp, nil
+}
+
+func buildResponse(t *lib.SimpleTweetDTO) events.APIGatewayProxyResponse {
+
+	r := events.APIGatewayProxyResponse{
+		Body:       t.TweetToJSON(),
 		StatusCode: 200,
-	}, nil
+	}
+	return r
 }
 
 func main() {
