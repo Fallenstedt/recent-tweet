@@ -2,7 +2,7 @@ package lib
 
 import (
 	"fmt"
-	"os"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -54,6 +54,7 @@ type QueryTweet struct{}
 
 // Execute from QueryTweet allows us to fetch the latest tweet from DynamoDB
 func (QueryTweet) Execute(s *DynamoDbInstance, t *SimpleTweetDTO) *SimpleTweetDTO {
+	log.Printf("Attempting to query tweet %v", t.ID)
 	result, err := s.Session.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(s.TableName),
 		Key: map[string]*dynamodb.AttributeValue{
@@ -69,11 +70,11 @@ func (QueryTweet) Execute(s *DynamoDbInstance, t *SimpleTweetDTO) *SimpleTweetDT
 
 	tweet := SimpleTweetDTO{}
 	err = dynamodbattribute.UnmarshalMap(result.Item, &tweet)
-
 	if err != nil {
 		panic(fmt.Sprintf("Failed to unmarshal Record, %v", err))
 	}
 
+	log.Printf("Successfully queried tweet %v", tweet.ID)
 	return &tweet
 }
 
@@ -84,14 +85,14 @@ type UpdateTweet struct{}
 func (UpdateTweet) Execute(s *DynamoDbInstance, t *SimpleTweetDTO) *SimpleTweetDTO {
 	av, err := dynamodbattribute.MarshalMap(t)
 
-	fmt.Printf("%+v\n", av)
+	log.Printf("%+v\n", av)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to marshal Record, %v", err))
 	}
 
 	input := &dynamodb.PutItemInput{
+		TableName: aws.String(s.TableName),
 		Item:      av,
-		TableName: aws.String(os.Getenv("TABLE_NAME")),
 	}
 
 	_, err = s.Session.PutItem(input)
@@ -100,7 +101,29 @@ func (UpdateTweet) Execute(s *DynamoDbInstance, t *SimpleTweetDTO) *SimpleTweetD
 		panic(fmt.Sprintf("Failed to Put Item, %v", err))
 	}
 
-	fmt.Println("Successfully added tweet " + t.ID)
+	log.Println("Successfully added tweet " + t.ID)
 	return t
+}
 
+// DeleteTweet is a DynamoOperator that allows us to Delete the latest tweet from Dynamo
+type DeleteTweet struct{}
+
+// Execute from DeleteTweet allows us to delete the latest tweet in DynamoDB
+func (DeleteTweet) Execute(s *DynamoDbInstance, t *SimpleTweetDTO) *SimpleTweetDTO {
+	input := &dynamodb.DeleteItemInput{
+		TableName: aws.String(s.TableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"ID": {
+				S: aws.String(t.ID),
+			},
+		},
+	}
+
+	_, err := s.Session.DeleteItem(input)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to DeleteItem from dynamo, %v", err))
+	}
+
+	log.Println("Successfully deleted tweet " + t.ID)
+	return t
 }
