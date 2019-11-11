@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"os"
-	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -48,15 +47,26 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	session := lib.CreateSimpleTweetTableSession(os.Getenv("TABLE_NAME"))
 	recentTweet := &simpleTweets[0]
 	queriedTweet := performOperationOnDynamo(session, recentTweet, lib.QueryTweet{})
-	isTweetFromDynamoNotMyLatestTweet := strings.Compare(queriedTweet.ID, recentTweet.ID)
 
-	if isTweetFromDynamoNotMyLatestTweet != 0 {
-		log.Printf("I have compred to the two tweets, %s, %s", queriedTweet.ID, recentTweet.ID)
+	if queriedTweet.ID == "" {
 		log.Print("Updating latest tweet in Dynamo")
 		updatedTweet := performOperationOnDynamo(session, recentTweet, lib.UpdateTweet{})
 		returnedTweet = updatedTweet
-	} else {
-		log.Print("Returning Tweet from DynamoDB")
+	}
+
+	if queriedTweet.ID != "" && queriedTweet.ID != recentTweet.ID {
+		log.Printf("I have compred to the two tweets, %s, %s", queriedTweet.ID, recentTweet.ID)
+		log.Print("Deleting tweet in Dynamo")
+		_ = performOperationOnDynamo(session, queriedTweet, lib.DeleteTweet{})
+
+		log.Print("Updating latest tweet in Dynamo")
+		updatedTweet := performOperationOnDynamo(session, recentTweet, lib.UpdateTweet{})
+
+		returnedTweet = updatedTweet
+	}
+
+	if queriedTweet.ID == recentTweet.ID {
+		log.Printf("Returning queried tweet, %s", queriedTweet.ID)
 		returnedTweet = queriedTweet
 	}
 
