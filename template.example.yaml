@@ -20,11 +20,13 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref LatestTweetTable
       Events:
-        CatchAll:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+        CheckForLatestTweet:
+          Type: Schedule
           Properties:
-            Path: /tweet
-            Method: GET
+            Schedule: rate(4 minutes)
+            Name: check-for-latest-tweet
+            Description: Pings twitter for latest tweet and updates record in Dynamo when tweet differs
+            Enabled: True
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
           CONSUMER_KEY: VALUE
@@ -47,17 +49,17 @@ Resources:
         AppType: Serverless
       SSESpecification:
         SSEEnabled: true
-
-Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  GetTweetAPI:
-    Description: "API Gateway endpoint URL for Prod environment for First Function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/get-tweet/"
-  GetTweetFunction:
-    Description: "ARN of GetTweet Function"
-    Value: !GetAtt GetTweetFunction.Arn
-  GetTweetFunctionIamRole:
-    Description: "Implicit IAM Role created for Get Tweet function"
-    Value: !GetAtt GetTweetFunctionRole.Arn
+# Outputs:
+# # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+# # Find out more about other implicit resources you can reference within SAM
+# # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+# GetTweetAPI:
+#   Description: "API Gateway endpoint URL for Prod environment for First Function"
+#   Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/get-tweet/"
+# GetTweetFunction:
+#   Description: "ARN of GetTweet Function"
+#   Value: !GetAtt GetTweetFunction.Arn
+# GetTweetFunctionIamRole:
+#   Description: "Implicit IAM Role created for Get Tweet function"
+#   Value:
+#     !GetAtt GetTweetFunctionRole.Arn
