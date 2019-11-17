@@ -10,10 +10,29 @@ Globals:
 
 Resources:
   GetTweetFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: get-tweet
       Handler: get-tweet
+      Runtime: go1.x
+      Tracing: Active
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LatestTweetTable
+      Events:
+        HttpGet:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /tweet
+            Method: GET
+      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+        Variables:
+          TABLE_NAME: VALUE
+  WatchForLatestTweetFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: watch-for-latest-tweet
+      Handler: watch-for-latest-tweet
       Runtime: go1.x
       Tracing: Active # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
       Policies:
@@ -37,7 +56,7 @@ Resources:
   LatestTweetTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
-      TableName: VALUE
+      TableName: latest-tweet-table
       PrimaryKey:
         Name: ID
         Type: String
@@ -55,7 +74,7 @@ Resources:
 # # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
 # GetTweetAPI:
 #   Description: "API Gateway endpoint URL for Prod environment for First Function"
-#   Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/get-tweet/"
+#   Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/watch-for-latest-tweet/"
 # GetTweetFunction:
 #   Description: "ARN of GetTweet Function"
 #   Value: !GetAtt GetTweetFunction.Arn
@@ -63,3 +82,7 @@ Resources:
 #   Description: "Implicit IAM Role created for Get Tweet function"
 #   Value:
 #     !GetAtt GetTweetFunctionRole.Arn
+# Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+# Properties:
+#   Path: /tweet
+#   Method: GET
