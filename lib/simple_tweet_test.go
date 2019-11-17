@@ -3,7 +3,7 @@ package lib_test
 import (
 	"testing"
 
-	"github.com/fallenstedt/latest-tweet/get-tweet/lib"
+	"github.com/fallenstedt/latest-tweet/watch-for-latest-tweet/lib"
 )
 
 func TestSimpleTweetDTO(t *testing.T) {

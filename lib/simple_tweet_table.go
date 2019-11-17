@@ -127,3 +127,34 @@ func (DeleteTweet) Execute(s *DynamoDbInstance, t *SimpleTweetDTO) *SimpleTweetD
 	log.Println("Successfully deleted tweet " + t.ID)
 	return t
 }
+
+// GetLatestTweet is a DynamoOperator that allows us to get the latest tweet from dynamo
+type GetLatestTweet struct{}
+
+// Execute from GetLatest allows us to scan our table for a tweet.
+func (GetLatestTweet) Execute(s *DynamoDbInstance, t *SimpleTweetDTO) *SimpleTweetDTO {
+	input := &dynamodb.ScanInput{
+		TableName: aws.String(s.TableName),
+		Limit:     aws.Int64(1),
+	}
+
+	result, err := s.Session.Scan(input)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to query the latest tweet from dynamo, %v", err))
+	}
+
+	tweet := SimpleTweetDTO{}
+
+	if len(result.Items) == 0 {
+		return &tweet
+	}
+
+	err = dynamodbattribute.UnmarshalMap(result.Items[0], &tweet)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to unmarshal Record, %v", err))
+	}
+
+	log.Println("Successfully got the latest tweet " + tweet.ID)
+
+	return &tweet
+}
