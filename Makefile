@@ -4,12 +4,15 @@ deps:
 	go get -u ./...
 
 clean: 
+	rm -rf ./watch-for-latest-tweet/watch-for-latest-tweet
 	rm -rf ./get-tweet/get-tweet
 	
 build:
+	GOOS=linux GOARCH=amd64 go build -o watch-for-latest-tweet/watch-for-latest-tweet ./watch-for-latest-tweet
 	GOOS=linux GOARCH=amd64 go build -o get-tweet/get-tweet ./get-tweet
 
 debug:
+	GOARCH=amd64 GOOS=linux go build -gcflags='-N -l' -o watch-for-latest-tweet/watch-for-latest-tweet ./watch-for-latest-tweet
 	GOARCH=amd64 GOOS=linux go build -gcflags='-N -l' -o get-tweet/get-tweet ./get-tweet
 
 test:

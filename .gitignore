@@ -1,4 +1,5 @@
 packaged-template.yaml
 .aws-sam
 template.yaml
+watch-for-latest-tweet/watch-for-latest-tweet
 get-tweet/get-tweet
