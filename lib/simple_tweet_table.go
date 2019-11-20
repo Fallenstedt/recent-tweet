@@ -69,12 +69,13 @@ func (QueryTweet) Execute(s *DynamoDbInstance, t *SimpleTweetDTO) *SimpleTweetDT
 	}
 
 	tweet := SimpleTweetDTO{}
+	log.Printf("Pre Unmarshal %v", result.Item)
 	err = dynamodbattribute.UnmarshalMap(result.Item, &tweet)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to unmarshal Record, %v", err))
 	}
 
-	log.Printf("Successfully queried tweet %v", tweet.ID)
+	log.Printf("Successfully queried tweet %v", &tweet)
 	return &tweet
 }
 

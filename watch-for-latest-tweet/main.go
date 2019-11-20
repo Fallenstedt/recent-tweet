@@ -46,7 +46,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	var returnedTweet *lib.SimpleTweetDTO
 	session := lib.CreateSimpleTweetTableSession(os.Getenv("TABLE_NAME"))
 	recentTweet := &simpleTweets[0]
-	queriedTweet := performOperationOnDynamo(session, recentTweet, lib.QueryTweet{})
+	queriedTweet := performOperationOnDynamo(session, nil, lib.GetLatestTweet{})
 
 	if queriedTweet.ID == "" {
 		log.Print("Updating latest tweet in Dynamo")
