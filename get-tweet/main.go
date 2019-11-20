@@ -17,6 +17,9 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	tweet := operation.ExecuteOperation(session, nil)
 
 	return events.APIGatewayProxyResponse{
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin": "*",
+		},
 		Body:       tweet.TweetToJSON(),
 		StatusCode: 200,
 	}, nil
