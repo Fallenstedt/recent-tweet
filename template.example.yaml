@@ -7,6 +7,16 @@ Description: >
 Globals:
   Function:
     Timeout: 5
+    Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+      Variables:
+        CONSUMER_KEY: VALUE
+        CONSUMER_SECRET: VALUE
+        ACCESS_KEY: VALUE
+        ACCESS_SECRET: VALUE
+        TABLE_NAME: VALUE
+  Api:
+    EndpointConfiguration: REGIONAL
+    Cors: "'*'" # Local Development friendly. Replace with your domain.
 
 Resources:
   GetTweetFunction:
@@ -25,9 +35,6 @@ Resources:
           Properties:
             Path: /tweet
             Method: GET
-      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
-        Variables:
-          TABLE_NAME: VALUE
   WatchForLatestTweetFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -42,17 +49,10 @@ Resources:
         CheckForLatestTweet:
           Type: Schedule
           Properties:
-            Schedule: rate(4 minutes)
+            Schedule: rate(20 minutes)
             Name: check-for-latest-tweet
             Description: Pings twitter for latest tweet and updates record in Dynamo when tweet differs
             Enabled: True
-      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
-        Variables:
-          CONSUMER_KEY: VALUE
-          CONSUMER_SECRET: VALUE
-          ACCESS_KEY: VALUE
-          ACCESS_SECRET: VALUE
-          TABLE_NAME: VALUE
   LatestTweetTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
