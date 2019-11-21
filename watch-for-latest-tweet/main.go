@@ -45,41 +45,32 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 
 	var returnedTweet *lib.SimpleTweetDTO
 	session := lib.CreateSimpleTweetTableSession(os.Getenv("TABLE_NAME"))
+	queriedTweet := getLatestTweetFromDynamo(session, lib.GetLatestTweet{})
 	recentTweet := &simpleTweets[0]
-	queriedTweet := performOperationOnDynamo(session, nil, lib.GetLatestTweet{})
+	chain := buildTweetHandleChain()
 
-	if queriedTweet.ID == "" {
-		log.Print("Updating latest tweet in Dynamo")
-		updatedTweet := performOperationOnDynamo(session, recentTweet, lib.UpdateTweet{})
-		returnedTweet = updatedTweet
-	}
-
-	if queriedTweet.ID != "" && queriedTweet.ID != recentTweet.ID {
-		log.Printf("I have compred to the two tweets, %s, %s", queriedTweet.ID, recentTweet.ID)
-		log.Print("Deleting tweet in Dynamo")
-		_ = performOperationOnDynamo(session, queriedTweet, lib.DeleteTweet{})
-
-		log.Print("Updating latest tweet in Dynamo")
-		updatedTweet := performOperationOnDynamo(session, recentTweet, lib.UpdateTweet{})
-
-		returnedTweet = updatedTweet
-	}
-
-	if queriedTweet.ID == recentTweet.ID {
-		log.Printf("Returning queried tweet, %s", queriedTweet.ID)
-		returnedTweet = queriedTweet
-	}
+	returnedTweet = chain.Request(session, queriedTweet, recentTweet)
 
 	resp := buildResponse(returnedTweet)
 	return resp, nil
 }
 
-func performOperationOnDynamo(s *lib.DynamoDbInstance, t *lib.SimpleTweetDTO, o lib.DynamoOperator) *lib.SimpleTweetDTO {
+func buildTweetHandleChain() lib.Handler {
+	quriedTweetEmpty := lib.QueriedTweetEmpty{}
+	queriedTweetIDDoesNotMatchRecentTweetID := lib.QueriedTweetIdDoesNotMatchRecentTweetId{}
+	queriedTweetMatchesRecentTweet := lib.QueriedTweetMatchesRecentTweet{}
 
+	quriedTweetEmpty.Next = &queriedTweetIDDoesNotMatchRecentTweetID
+	queriedTweetIDDoesNotMatchRecentTweetID.Next = &queriedTweetMatchesRecentTweet
+
+	return &quriedTweetEmpty
+}
+
+func getLatestTweetFromDynamo(s *lib.DynamoDbInstance, o lib.DynamoOperator) *lib.SimpleTweetDTO {
 	operation := lib.DynamoOperation{
 		DynamoOperator: o,
 	}
-	operationResult := operation.ExecuteOperation(s, t)
+	operationResult := operation.ExecuteOperation(s, nil)
 	return operationResult
 }
 
