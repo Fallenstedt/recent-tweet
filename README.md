@@ -5,6 +5,7 @@ A simple way to show your latest tweet. Every 24hrs it fetches your latest tweet
 ## Requirements
 
 - AWS CLI already configured with Administrator permission
+- [AWS SAM CLI](https://github.com/awslabs/aws-sam-cli)
 - [Docker installed for local development](https://www.docker.com/community-edition)
 - [Golang](https://golang.org)
 
